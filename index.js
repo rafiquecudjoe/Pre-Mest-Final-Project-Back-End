@@ -70,6 +70,6 @@ connectDB();
 
 server.use("/api/v1", Router);
 
-server.listen(port, () => {
+server.listen(process.env.PORT || 5000, () => {
   console.log(`Server is running at ${port}`);
 });
