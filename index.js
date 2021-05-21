@@ -10,7 +10,7 @@ const connectEnsureLogin = require('connect-ensure-login') //authorization
 const Usermodel = require('./Usermodel'); // User Model 
 const MongoStore = require('connect-mongo');
 const cookieParser=require('cookie-parser')  //imports cookie-parser
-require('./auth/passport')
+// require('./auth/passport')
 
 
 
