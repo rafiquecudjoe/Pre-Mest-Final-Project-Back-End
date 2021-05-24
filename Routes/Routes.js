@@ -1,6 +1,6 @@
 const express = require("express");
 const Usermodel = require("../Usermodel");
-
+const checkUser = require("../Middleware");
 const Router = express();
 const uuid = require("uuid").v4;
 const { genPassword, validPassword } = require("../lib/Password");
