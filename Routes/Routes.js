@@ -33,7 +33,7 @@ Router.post("/login", async function (request, response) {
       response
         .cookie("jwt", token, {
           httpOnly: true,
-          secure: false, //--> SET TO TRUE ON PRODUCTION
+          secure: true, //--> SET TO TRUE ON PRODUCTION
         })
        .status(200)
         .send({ success: true, message: "Successful" });
@@ -50,9 +50,7 @@ Router.post("/login", async function (request, response) {
 //Signup Route
 Router.post("/signup", async function (request, response) {
   const { fullname, email, username, password } = request.body;
-
   const saltHash = genPassword(password);
-
   const salt = saltHash.salt;
   const hash = saltHash.hash;
 
@@ -63,10 +61,8 @@ Router.post("/signup", async function (request, response) {
     salt,
     hash,
   });
-
-  let responseData = await newUser.save();
-
-  if (responseData) {
+let responseData = await newUser.save();
+if (responseData) {
     response.status(200).send({ success: true, message: responseData });
   } else {
     response
@@ -74,14 +70,10 @@ Router.post("/signup", async function (request, response) {
       .send({ success: false, message: "User Already Exist" });
   }
 });
-
-//Homepage Route
-
-// console.log('inside the homepage callback function')
-
 Router.post("loging", (request, response) => {
   response.status(600).send("Helooo");
 });
+
 
 //Protected Route
 

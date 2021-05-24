@@ -50,22 +50,7 @@ server.use(passport.initialize())   //Passport middleware
 // server.use(passport.initialize())
 // server.use(passport.session())
 
-
-//Passport Local Strategy
-// passport.use(Usermodel.createStrategy())
-
-//To use with sessions
-// passport.serializeUser(Usermodel.serializeUser());
-// passport.deserializeUser(Usermodel.deserializeUser());
-
-
 connectDB();
-
-
-
-
-
-
 
 
 server.use("/api/v1", Router);
