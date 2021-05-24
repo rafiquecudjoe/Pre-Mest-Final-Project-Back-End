@@ -22,21 +22,21 @@ const cookieParser=require('cookie-parser')  //imports cookie-parser
 const server = express();
 
 // session middleware
-server.use(session({
-  genid: (request) => {
-    console.log('Inside the session middleware')
-    console.log(request.sessionID)
-    return uuid()  // use UUIDs for Session IDs
-  },
-  store:MongoStore.create({
-    mongoUrl: "mongodb+srv://admin:adm'n@cluster0.cvhh9.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
+// server.use(session({
+//   genid: (request) => {
+//     console.log('Inside the session middleware')
+//     console.log(request.sessionID)
+//     return uuid()  // use UUIDs for Session IDs
+//   },
+//   store:MongoStore.create({
+//     mongoUrl: "mongodb+srv://admin:adm'n@cluster0.cvhh9.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
    
-  }) ,  // MongoDB Connection for Sessions
-  secret: 'express delivery',
-  resave: false,
-  saveUninitialized: true,
-  cookie: { maxAge: 60 * 60 * 1000 }  //1hour
-}))
+//   }) ,  // MongoDB Connection for Sessions
+//   secret: 'express delivery',
+//   resave: false,
+//   saveUninitialized: true,
+//   cookie: { maxAge: 60 * 60 * 1000 }  //1hour
+// }))
 
 const port = 5000;
 
