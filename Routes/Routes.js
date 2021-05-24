@@ -1,9 +1,9 @@
 const express = require("express");
-const Usermodel = require("./Usermodel");
-const checkUser = require("./Middleware");
+const Usermodel = require("../Usermodel");
+const checkUser = require("../Middleware");
 const Router = express();
 const uuid = require("uuid").v4;
-const { genPassword, validPassword } = require("./lib/Password");
+const { genPassword, validPassword } = require("../lib/Password");
 const passport = require("passport"); //Imports Passport
 const jwt = require("jsonwebtoken");
 

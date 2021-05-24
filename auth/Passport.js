@@ -1,30 +1,33 @@
-const passport = require('passport')   //imports Passport
-const passportJWT =require('passport-jwt')    //imports PassportJWT
-const JWTStrategy = passportJWT.Strategy   //imports Passport JWT Stragegy
+const passport = require("passport"); //imports Passport
+const passportJWT = require("passport-jwt"); //imports PassportJWT
+const JWTStrategy = passportJWT.Strategy; //imports Passport JWT Stragegy
 
+const secret = "wow123";
+const cookieExtractor = (req) => {
+  let jwt = null;
 
-const secret = 'wow123'
+  if (req && req.cookies) {
+    jwt = req.cookies["jwt"];
+  }
 
-const cookieExtractor = req => {
-    let jwt = null 
+  return jwt;
+};
 
-    if (req && req.cookies) {
-        jwt = req.cookies['jwt']
+passport.use(
+  "jwt",
+  new JWTStrategy(
+    {
+      jwtFromRequest: cookieExtractor,
+      secretOrKey: secret,
+    },
+    (jwtPayload, done) => {
+      const { expiration } = jwtPayload;
+
+      if (Date.now() > expiration) {
+        done("Unauthorized", false);
+      }
+
+      done(null, jwtPayload);
     }
-
-    return jwt
-}
-
-
-passport.use('jwt', new JWTStrategy({
-    jwtFromRequest: cookieExtractor,
-    secretOrKey: secret
-}, (jwtPayload, done) => {
-    const { expiration } = jwtPayload
-
-    if (Date.now() > expiration) {
-        done('Unauthorized', false)
-    }
-
-    done(null, jwtPayload)
-}))
+  )
+);
