@@ -13,6 +13,8 @@ const cookieExtractor = (req) => {
   return jwt;
 };
 
+
+// Passport JWT Stategy
 passport.use(
   "jwt",
   new JWTStrategy(

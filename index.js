@@ -34,6 +34,7 @@ const server = express();
 //   }) ,  // MongoDB Connection for Sessions
 //   secret: 'express delivery',
 //   resave: false,
+//   resave: false,
 //   saveUninitialized: true,
 //   cookie: { maxAge: 60 * 60 * 1000 }  //1hour
 // }))
