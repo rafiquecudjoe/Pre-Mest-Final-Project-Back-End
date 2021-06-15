@@ -7,14 +7,16 @@ const passport = require("passport");   //authetification
 const session = require('express-session')   //session middleware
 const uuid = require('uuid').v4
 const connectEnsureLogin = require('connect-ensure-login') //authorization
-const Usermodel = require('./Usermodel'); // User Model 
+const Usermodel = require('./models/Usermodel'); // User Model 
 const MongoStore = require('connect-mongo');
-const cookieParser=require('cookie-parser')  //imports cookie-parser
+const cookieParser = require('cookie-parser')  //imports cookie-parser
+require('express-async-errors')
+require('dotenv').config();
 // require('./auth/passport')
 
 
 
-// require('dotenv').config();
+
 
 
 
@@ -55,7 +57,14 @@ connectDB();
 
 
 server.use("/api/v1", Router);
+server.use((error, request, response, next) => {
+  
+  response.status(500).send({ error: error.message })
+  next()
+  
+})
 
 server.listen(process.env.PORT || 5000, () => {
   console.log(`Server is running at ${port}`);
+  
 });
