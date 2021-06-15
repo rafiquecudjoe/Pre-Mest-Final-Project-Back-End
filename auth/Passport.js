@@ -3,6 +3,7 @@ const passportJWT = require("passport-jwt"); //imports PassportJWT
 const JWTStrategy = passportJWT.Strategy; //imports Passport JWT Stragegy
 
 const secret = "wow123";
+
 const cookieExtractor = (req) => {
   let jwt = null;
 
@@ -14,7 +15,7 @@ const cookieExtractor = (req) => {
 };
 
 
-// Passport JWT Stategy
+// Passport JWT Middleware Stategy
 passport.use(
   "jwt",
   new JWTStrategy(

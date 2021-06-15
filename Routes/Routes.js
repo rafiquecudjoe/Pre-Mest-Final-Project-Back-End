@@ -6,6 +6,8 @@ const uuid = require("uuid").v4;
 const { genPassword, validPassword } = require("../lib/Password");
 const passport = require("passport"); //Imports Passport
 const jwt = require("jsonwebtoken");
+const crypto = require('crypto')
+const bcrypt = require('bcrypt')
 
 const expirationtimeInMs = 600000;
 const secret = "wow123";
@@ -35,7 +37,7 @@ Router.post("/login", async function (request, response) {
           httpOnly: true,
           secure: true, //--> SET TO TRUE ON PRODUCTION
         })
-       .status(200)
+        .status(200)
         .send({ success: true, message: "Successful" });
     } else {
       response
@@ -50,30 +52,33 @@ Router.post("/login", async function (request, response) {
 //Signup Route
 Router.post("/signup", async function (request, response) {
   const { fullname, email, username, password } = request.body;
-  const saltHash = genPassword(password);
-  const salt = saltHash.salt;
-  const hash = saltHash.hash;
 
-  let newUser = new Usermodel({
-    fullname,
-    email,
-    username,
-    salt,
-    hash,
-  });
-let responseData = await newUser.save();
-if (responseData) {
-    response.status(200).send({ success: true, message: responseData });
+  let valid = await Usermodel.findOne({ email });
+
+  if (valid) {
+    response.status(300).send({ success: false });
   } else {
-    response
-      .status(400)
-      .send({ success: false, message: "User Already Exist" });
+    const saltHash = genPassword(password);
+    const salt = saltHash.salt;
+    const hash = saltHash.hash;
+
+    let newUser = new Usermodel({
+      fullname,
+      email,
+      username,
+      salt,
+      hash,
+    });
+    let responseData = await newUser.save();
+    if (responseData) {
+      response.status(200).send({ success: true, message: responseData });
+    } else {
+      (err) => console.log(err);
+    }
   }
 });
-Router.post("loging", (request, response) => {
-  response.status(600).send("Helooo");
-});
 
+//PAYMENT ROUTE
 
 //Protected Route
 
@@ -86,4 +91,74 @@ Router.get(
     });
   }
 );
+
+// Router.get('/users',async function (request, response) {
+
+//   const responseData = await Usermodel.find()
+
+//   response.status(200).send({success:true,data:responseData})
+
+// })
+
+Router.get("/users", async function (resquest, response) {
+  let responseData = await Usermodel.find();
+
+  response.status(200).send({ success: true, data: responseData });
+});
+
+Router.post("/forgotpassword", async function (request, response) {
+  const { email } = request.body;
+ 
+
+  let user = await Usermodel.findOne({ email });
+
+  if (!user) throw new Error("User does not exist")
+
+  let resetToken = crypto.randomBytes(32).toString("hex")
+
+  const hash = await bcrypt.hash(resetToken, Number(bcryptSalt));
+ 
+ 
+  await new Token({
+    userId: user._id,
+    token: hash,
+    createdAt: Date.now(),
+  }).save();
+
+  const link = `${clientURL}/passwordReset?token=${resetToken}&id=${user._id}`;
+  sendEmail(user.email,"Password Reset Request",{name: user.fullname,link: link,},"./template/requestResetPassword.handlebars");
+  return link;
+
+
+  
+  
+
+
+  // const oldname = { _id: valid._id };
+
+  // const newname = { $set: { username: "rasgalazy6" } };
+
+  // const update = await Usermodel.updateOne(oldname, newname);
+  // if (update.nModified == 1) {
+  //   console.log("Update Successful");
+  // } else {
+  //   console.log("Update Unsuccessful");
+  // }
+
+  if (valid) {
+    response.status(200).send({ success: true });
+  } else {
+    response.status(300).send({ failure: true });
+  }
+});
+
+Router.post("/updatepassword", function (resquest, response) {});
+
+Router.post('/async-error-test', async (request, response) => {
+  
+  await async()
+
+  response.send({well:"We are not going to reach this line"})
+  
+})
 module.exports = Router;

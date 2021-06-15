@@ -39,7 +39,7 @@ const server = express();
 //   cookie: { maxAge: 60 * 60 * 1000 }  //1hour
 // }))
 
-const port = 5000;
+const port = 7000;
 
 
 // configures more  middlewares
