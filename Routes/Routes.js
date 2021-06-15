@@ -1,16 +1,19 @@
 const express = require("express");
-const Usermodel = require("../Usermodel");
-
+const Usermodel = require("../models/Usermodel");
+const Token = require("../models/Tokenmodel");
 const Router = express();
 const uuid = require("uuid").v4;
 const { genPassword, validPassword } = require("../lib/Password");
 const passport = require("passport"); //Imports Passport
 const jwt = require("jsonwebtoken");
-const crypto = require('crypto')
-const bcrypt = require('bcrypt')
+const crypto = require("crypto");
+const bcrypt = require("bcrypt");
 
-const expirationtimeInMs = 600000;
-const secret = "wow123";
+const expirationtimeInMs = process.env.TOKENEXPIRATION;
+const secret = process.env.SECRET;
+JWT_SECRET = process.env.JWT_SECRET;
+bcryptSalt = process.env.BCRYPT_SALT;
+clientURL = process.env.CLIENT_URL;
 
 //Login Route
 Router.post("/login", async function (request, response) {
@@ -92,13 +95,78 @@ Router.get(
   }
 );
 
-// Router.get('/users',async function (request, response) {
+Router.post("/requestResetPassword", async function (resquest, response, next) {
+  const { email } = request.body;
 
-//   const responseData = await Usermodel.find()
+  const user = await Usermodel.findOne({ email });
 
-//   response.status(200).send({success:true,data:responseData})
+  if (!user) {
+    throw new Error("User Already Exist");
+  } else {
+    let token = await Token.findOne({ userid: user.id });
+    if (token) await token.deleteOne();
 
-// })
+    let resetToken = crypto.randomBytes(32).toString("hex");
+    const hash = await bcrypt.hash(resetToken, Number(bcryptSalt));
+
+    await new Token({
+      userId: user.id,
+      token: hash,
+      createdAt: Date.now(),
+    }).save();
+
+    const link = `${clientURL}?token=${resetToken}&id=${user._id}`;
+    const emailSent = await sendEmail(
+      user.email,
+      "Password Reset Request",
+      { name: user.fullname, link: link },
+      "./template/requestResetPassword.handlebars"
+    );
+    if (emailSent) {
+      response.status(200).send({ success: true });
+    } else {
+      response
+        .status(200)
+        .send({ success: true, message: "Email Failed to send" });
+    }
+  }
+  next();
+});
+
+Router.post('/passwordreset',async (request, response, next) => {
+  const queryObject = url.parse(request.url, true).query;
+  const { token, userId } = queryObject
+  const { password } = request.body
+  
+  const passwordResetToken = await Token.findOne({ userId })
+  if (!passwordResetToken) throw new Error('Invalid or Expired Password Reset Token')
+  
+  const isValid = await bcrypt.compare(token, passwordResetToken)
+  if (!isValid) throw new Error('Invalid or Expired Password Reset Token')
+  const hash = await bcrypt.hash(password, Number(bcryptSalt))
+  
+  await Usermodel.updateOne({_id:userId
+  }, { $set: { password: hash } }, { new: true })
+  
+  const user = await Usermodel.findById({ _id: userId })
+  const emailSent = await sendEmail(
+    user.email,
+    "Password Reset Successfully",
+    { name: user.fullname,},
+    "./template/resetPassword.handlebars"
+  );
+  if (emailSent) {
+    response.status(200).send({ success: true,data: "Password Reset Seccuessful" });
+  } else {
+    response
+      .status(300)
+      .send({ failure: true, message: "Email Failed to send" });
+  }
+
+next();
+  
+  
+})
 
 Router.get("/users", async function (resquest, response) {
   let responseData = await Usermodel.find();
@@ -106,59 +174,4 @@ Router.get("/users", async function (resquest, response) {
   response.status(200).send({ success: true, data: responseData });
 });
 
-Router.post("/forgotpassword", async function (request, response) {
-  const { email } = request.body;
- 
-
-  let user = await Usermodel.findOne({ email });
-
-  if (!user) throw new Error("User does not exist")
-
-  let resetToken = crypto.randomBytes(32).toString("hex")
-
-  const hash = await bcrypt.hash(resetToken, Number(bcryptSalt));
- 
- 
-  await new Token({
-    userId: user._id,
-    token: hash,
-    createdAt: Date.now(),
-  }).save();
-
-  const link = `${clientURL}/passwordReset?token=${resetToken}&id=${user._id}`;
-  sendEmail(user.email,"Password Reset Request",{name: user.fullname,link: link,},"./template/requestResetPassword.handlebars");
-  return link;
-
-
-  
-  
-
-
-  // const oldname = { _id: valid._id };
-
-  // const newname = { $set: { username: "rasgalazy6" } };
-
-  // const update = await Usermodel.updateOne(oldname, newname);
-  // if (update.nModified == 1) {
-  //   console.log("Update Successful");
-  // } else {
-  //   console.log("Update Unsuccessful");
-  // }
-
-  if (valid) {
-    response.status(200).send({ success: true });
-  } else {
-    response.status(300).send({ failure: true });
-  }
-});
-
-Router.post("/updatepassword", function (resquest, response) {});
-
-Router.post('/async-error-test', async (request, response) => {
-  
-  await async()
-
-  response.send({well:"We are not going to reach this line"})
-  
-})
 module.exports = Router;

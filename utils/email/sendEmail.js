@@ -1,55 +1,35 @@
-
 const nodemailer = require("nodemailer");
 const handlebars = require("handlebars");
 const fs = require("fs");
 const path = require("path");
+const { getMaxListeners } = require("process");
+const { text } = require("express");
 
 const sendEmail = async (email, subject, payload, template) => {
-  try {
-    // create reusable transporter object using the default SMTP transport
-    const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: 465,
-      auth: {
-        user: process.env.EMAIL_USERNAME,
-        pass: process.env.EMAIL_PASSWORD, // naturally, replace both with your real credentials or an application-specific password
-      },
-    });
+  const transporter = nodemailer.createTransport({
+    host: process.env.HOST,
+    port: process.env.EMAIL_PORT,
+    auth: {
+      user: process.env.USER,
+      pass: process.env.PASS,
+    },
+  });
 
-    const source = fs.readFileSync(path.join(__dirname, template), "utf8");
-    const compiledTemplate = handlebars.compile(source);
-    const options = () => {
-      return {
-        from: process.env.FROM_EMAIL,
-        to: email,
-        subject: subject,
-        html: compiledTemplate(payload),
-      };
+  const source = await fs.readFileSync(path.join(__dirname, template), "utf8");
+  const compiledTemplate = await handlebars.compile(source);
+
+  const mailOptions = () => {
+    return {
+      from: "EXPRESS DELIVERY<expresseliverygh@gmail.com>",
+      to: email,
+      subject: subject,
+      text: text,
+      html: compiledTemplate(payload),
     };
+  };
 
-    // Send email
-    transporter.sendMail(options(), (error, info) => {
-      if (error) {
-        return error;
-      } else {
-        return res.status(200).json({
-          success: true,
-        });
-      }
-    });
-  } catch (error) {
-    return error;
-  }
+  const delivered = await transporter.sendMail(mailOptions());
+  if (!delivered) throw new Error("Email not sent");
 };
-
-/*
-Example:
-sendEmail(
-  "youremail@gmail.com,
-  "Email subject",
-  { name: "Eze" },
-  "./templates/layouts/main.handlebars"
-);
-*/
 
 module.exports = sendEmail;
